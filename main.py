@@ -1,7 +1,6 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler, SimpleHTTPRequestHandler
 from jinja2 import Environment, PackageLoader, select_autoescape
 
-
 food_kinds = [
     {
         'icon': 'lunch',
@@ -39,6 +38,10 @@ class CustomHandler(SimpleHTTPRequestHandler):
         body = self.env.get_template('index.html').render(food_kinds=food_kinds)
         print(body)
         self.wfile.write(body.encode('utf-8'))
+
+
+def discover_models():
+    pass
 
 
 def run(server_class=HTTPServer, handler_class=BaseHTTPRequestHandler):
