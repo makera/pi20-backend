@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form action="" method="post">
+    <input type="text" name="username" value="{% if post %}{{ post.username }}{% endif %}">
+    <input type="password" name="password">
+    <input type="submit" name="submit">
+</form>
+{% endblock %}
