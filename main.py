@@ -1,5 +1,6 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler, SimpleHTTPRequestHandler
 from jinja2 import Environment, PackageLoader, select_autoescape
+from models.kinds import FoodKind
 
 food_kinds = [
     {
@@ -35,7 +36,7 @@ class CustomHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        body = self.env.get_template('index.html').render(food_kinds=food_kinds)
+        body = self.env.get_template('index.html').render(food_kinds=FoodKind.fetch_all())
         print(body)
         self.wfile.write(body.encode('utf-8'))
 
@@ -47,6 +48,10 @@ def discover_models():
 def run(server_class=HTTPServer, handler_class=BaseHTTPRequestHandler):
     server_address = ('', 8000)
     httpd = server_class(server_address, handler_class)
+    print('Create table')
+    for table in [FoodKind]:
+        table._create_table()
+        print('Table {} was created'.format(table.__name__))
     print('Server starting')
     httpd.serve_forever()
 
