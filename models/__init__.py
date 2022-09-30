@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass, fields, Field
-from db import con
+from db import get_connection
 
 
 def table_field_with_type(field: Field, primary_key):
@@ -31,12 +31,13 @@ class BaseModel(ABC):
     def _table_name(self):
         return self.__class__.__name__.lower()
 
-    def _create_table(self):
+    @classmethod
+    def _create_table(cls):
         sql = 'CREATE TABLE IF NOT EXISTS {} ({})'.format(
-            self._table_name,
-            ', '.join(map(lambda f: table_field_with_type(f, self.primary_key), fields(self)))
+            cls.__name__.lower(),
+            ', '.join(map(lambda f: table_field_with_type(f, cls.primary_key), fields(cls)))
         )
-        cur = con.cursor()
+        cur = get_connection().cursor()
         cur.execute(sql)
         cur.close()
 
@@ -53,27 +54,28 @@ class BaseModel(ABC):
                 ', '.join(map(lambda f: '{}={}'.format(f.name, clean_table_value(f, getattr(self, f.name))), fields(self))),
                 self.id
             )
-        cur = con.cursor()
+        cur = get_connection().cursor()
         cur.execute(sql)
-        con.commit()
+        get_connection().commit()
         res = cur.execute('SELECT * FROM {} WHERE id={}'.format(self._table_name, cur.lastrowid)).fetchone()
         for col in range(len(fields(self))):
             setattr(self, fields(self)[col].name, res[col])
+        cur.close()
         return self
 
     def delete(self):
         if self.id:
             sql = 'DELETE FROM {} WHERE id={}'.format(self._table_name, self.id)
-            cur = con.cursor()
+            cur = get_connection().cursor()
             cur.execute(sql)
-            con.commit()
+            get_connection().commit()
             cur.close()
         return self
 
     @classmethod
     def fetch_all(cls):
         sql = 'SELECT * FROM {}'.format(cls.__name__.lower())
-        cur = con.cursor()
+        cur = get_connection().cursor()
         cur.execute(sql)
         items = [cls(*row) for row in cur.fetchall()]
         cur.close()
